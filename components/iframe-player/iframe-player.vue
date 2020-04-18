@@ -1,10 +1,10 @@
 <template>
   <div class="player">
-    <iframe ref="$player" :data-src="src"></iframe>
-    <div class="player-controls">
-      <button @click="play">Play</button>
-      <button @click="pause">Pause</button>
-      <button @click="stop">Stop</button>
+    <div class="player-wrapper">
+      <div v-if="overlay" @click="play()" :style="'background-image: url(' + overlay + ');'" class="player-overlay" :class="{ 'player-overlay--hide': overlay_hide }">
+        <div class="player-play">▶</div>
+      </div>
+      <iframe class="player-iframe" ref="$player" :data-src="src" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
     </div>
   </div>
 </template>
@@ -12,10 +12,13 @@
 
 <script>
 
-import { isUrl, parseUrl, YoutubeHelper, VimeoHelper, DailymotionHelper } from './utils.js'
+import { isUrl, parseUrl } from './utils.js'
+import YoutubeHelper from './services/youtube.js'
+import VimeoHelper from './services/vimeo.js'
+import DailymotionHelper from './services/dailymotion.js'
 
 export default {
-  props: ['src'],
+  props: ['src', 'overlay', 'overlay_on_pause', 'overlay_on_stop'],
   created() {
     this.services = {
       YOUTUBE: 'www.youtube.com',
@@ -27,38 +30,57 @@ export default {
   data() {
     return {
       iframeUrl: '',
-      urlParams: {}
+      urlParams: {},
+      overlay_hide: true,
+      state: {
+        ready: false,
+        playing: false,
+        paused: true,
+        stoped: true,
+      }
     }
   },
-  updated() {
-    this.update()
-  },
   mounted() {
+    // cache inital state
+    this.classNames = {
+      playerInit: this.$refs.$player.className
+    }
     this.update()
   },
   methods: {
     update() {
-      this.iframeUrl = this.src
+      const { $player } = this.$refs
 
+      // RESET
+      this.iframeUrl = this.src
+      this.overlay_hide = !this.overlay
+      $player.className = this.classNames.playerInit
+
+      // check if src is url
       const validity = isUrl(this.iframeUrl)
       if (!validity) {
+        console.error(this.iframeUrl + 'is not a valid url')
         return this.setIframeSrc(this.iframeUrl)
       }
 
+      // parse URL
       this.urlParams = parseUrl(this.iframeUrl)
       const { urlParams } = this
-      const { host, pathname } = urlParams
 
       let helper
-      switch (host) {
+
+      switch (urlParams.host) {
         case this.services.YOUTUBE:
+          $player.classList.add('player--youtube')
           helper = new YoutubeHelper(urlParams)
           break;
         case this.services.VIMEO:
         case this.services.VIMEO_PAGE:
+          $player.classList.add('player--vimeo')
           helper = new VimeoHelper(urlParams)
           break;
         case this.services.DAILYMOTION:
+          $player.classList.add('player--dailymotion')
           helper = new DailymotionHelper(urlParams)
           break;
         default:
@@ -69,6 +91,18 @@ export default {
         helper.addApiQueryParams(urlParams)
         this.iframeUrl = helper.url
         this.setIframeSrc(this.iframeUrl)
+
+          window.addEventListener('message', e => {
+            const playerEvent = helper.onMessage(e)
+            if (playerEvent) {
+              console.log(playerEvent);
+              this[playerEvent.func](playerEvent.data)
+            }
+          })
+
+        $player.addEventListener('load', () => {
+          helper.bindEvents($player)
+        })
       }
     },
     play() {
@@ -90,13 +124,103 @@ export default {
 
       $player.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'stopVideo' }), 'https://www.youtube.com')
       $player.contentWindow.postMessage({ method: 'unload' }, 'https://player.vimeo.com');
+
       $player.contentWindow.postMessage('pause', 'https://www.dailymotion.com');
       $player.contentWindow.postMessage(JSON.stringify({ command : 'seek', parameters:[0] }), 'https://www.dailymotion.com');
+
     },
     setIframeSrc(str) {
       this.$refs.$player.src = str
     },
+    onReady(e) {
+      this.state.ready = true
+    },
+    onPlay(e) {
+      this.state.playing = true
+      this.state.paused = false
+      this.state.stoped = false
+
+      const { overlay_hide, overlay, } = this
+      if(overlay && !overlay_hide) {
+        this.overlay_hide = true // hide overlay
+      }
+    },
+    onPause(e) {
+      this.state.playing = false
+      this.state.paused = true
+
+      const { overlay_hide, overlay, overlay_on_pause } = this
+      if(overlay && overlay_hide && overlay_on_pause) {
+        this.overlay_hide = false // show overlay
+      }
+    },
+    onStop(e) {
+      this.state.playing = false
+      this.state.paused = true
+      this.state.stoped = true
+
+      const { overlay_hide, overlay, overlay_on_stop } = this
+      if(overlay && overlay_hide && overlay_on_stop) {
+        this.overlay_hide = false // show overlay
+      }
+    }
   }
 }
 
 </script>
+
+<style lang="scss" scoped>
+.player {}
+
+.player-iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.player-wrapper {
+  position: relative;
+  width: 100%;
+  padding-top: (9 / 16 * 100%);
+}
+
+.player-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  cursor: pointer;
+
+  // animations
+  opacity: 1;
+  transition: opacity 0.15s ease-in-out;
+
+  &--hide {
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+.player-play {
+  height: 40px;
+  width: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: white;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate3D(-50%, -50%, 0);
+  border: 1px solid currentColor;
+}
+</style>

@@ -1211,23 +1211,13 @@
     qs "^6.6.0"
     ts-dedent "^1.1.0"
 
-"@storybook/addon-storysource@^5.3.18":
+"@storybook/addon-options@^5.3.18":
   version "5.3.18"
-  resolved "https://registry.yarnpkg.com/@storybook/addon-storysource/-/addon-storysource-5.3.18.tgz#003374d76c0898c3b74aa4cd008f444eb6b63c68"
-  integrity sha512-uMSu505rbcNErAYngV5raVRQ/eMiOtGNA88WxNzD/8h/0EVpEXlBAewiGzAmooNhCa/3O3iPuwka8Cky6aWPOA==
+  resolved "https://registry.yarnpkg.com/@storybook/addon-options/-/addon-options-5.3.18.tgz#cd40fa137213e4f738691771c404a255eee5b39a"
+  integrity sha512-AlejrKB0oiG/tVpqziA0zyKa9KhIwL7xGZYy+kdgTmXiWVJzp4OQgxaOrVD6trPrPpx8/YIwe5ivClxD5HuUpA==
   dependencies:
     "@storybook/addons" "5.3.18"
-    "@storybook/components" "5.3.18"
-    "@storybook/router" "5.3.18"
-    "@storybook/source-loader" "5.3.18"
-    "@storybook/theming" "5.3.18"
     core-js "^3.0.1"
-    estraverse "^4.2.0"
-    loader-utils "^1.2.3"
-    prettier "^1.16.4"
-    prop-types "^15.7.2"
-    react-syntax-highlighter "^11.0.2"
-    regenerator-runtime "^0.13.3"
     util-deprecate "^1.0.2"
 
 "@storybook/addons@5.3.18", "@storybook/addons@^5.3.18":
@@ -1463,22 +1453,6 @@
     memoizerific "^1.11.3"
     qs "^6.6.0"
     util-deprecate "^1.0.2"
-
-"@storybook/source-loader@5.3.18":
-  version "5.3.18"
-  resolved "https://registry.yarnpkg.com/@storybook/source-loader/-/source-loader-5.3.18.tgz#39ba28d9664ab8204d6b04ee757772369931e7e5"
-  integrity sha512-oljmLt3KMu17W9FAaEgocsI6wrloWczS26SVXadzbDbL+8Tu6vTeFJSd6HcY+e4JIIKjuze0kmaVhpi6wwPbZQ==
-  dependencies:
-    "@storybook/addons" "5.3.18"
-    "@storybook/client-logger" "5.3.18"
-    "@storybook/csf" "0.0.1"
-    core-js "^3.0.1"
-    estraverse "^4.2.0"
-    global "^4.3.2"
-    loader-utils "^1.2.3"
-    prettier "^1.16.4"
-    prop-types "^15.7.2"
-    regenerator-runtime "^0.13.3"
 
 "@storybook/theming@5.3.18":
   version "5.3.18"
@@ -3172,6 +3146,11 @@ boolbase@^1.0.0, boolbase@~1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/boolbase/-/boolbase-1.0.0.tgz#68dff5fbe60c51eb37725ea9e3ed310dcc1e776e"
   integrity sha1-aN/1++YMUes3cl6p4+0xDcwed24=
+
+bootstrap@3:
+  version "3.4.1"
+  resolved "https://registry.yarnpkg.com/bootstrap/-/bootstrap-3.4.1.tgz#c3a347d419e289ad11f4033e3c4132b87c081d72"
+  integrity sha512-yN5oZVmRCwe5aKwzRj6736nSmKDX7pLYwsXiCj/EYmo16hODaBiT4En5btW/jhBF/seV+XMx3aYwukYC3A49DA==
 
 boxen@^4.1.0:
   version "4.2.0"
@@ -9629,7 +9608,7 @@ prepend-http@^1.0.0:
   resolved "https://registry.yarnpkg.com/prepend-http/-/prepend-http-1.0.4.tgz#d4f4562b0ce3696e41ac52d0e002e57a635dc6dc"
   integrity sha1-1PRWKwzjaW5BrFLQ4ALlemNdxtw=
 
-prettier@^1.13.0, prettier@^1.16.4, prettier@^1.18.2:
+prettier@^1.13.0, prettier@^1.18.2:
   version "1.19.1"
   resolved "https://registry.yarnpkg.com/prettier/-/prettier-1.19.1.tgz#f7d7f5ff8a9cd872a7be4ca142095956a60797cb"
   integrity sha512-s7PoyDv/II1ObgQunCbB9PdLmUcBZcnWOcxDh7O0N/UwDEsHyqkW+Qh28jW+mVuCdx7gLB0BotYI1Y6uI9iyew==
