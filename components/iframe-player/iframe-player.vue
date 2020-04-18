@@ -47,6 +47,9 @@ export default {
     }
     this.update()
   },
+  destroyed() {
+    window.removeEventListener('message', this.handleMessage)
+  },
   methods: {
     update() {
       const { $player } = this.$refs
@@ -88,21 +91,23 @@ export default {
       }
 
       if (helper) {
+        this.helper = helper
         helper.addApiQueryParams(urlParams)
         this.iframeUrl = helper.url
         this.setIframeSrc(this.iframeUrl)
 
-          window.addEventListener('message', e => {
-            const playerEvent = helper.onMessage(e)
-            if (playerEvent) {
-              console.log(playerEvent);
-              this[playerEvent.func](playerEvent.data)
-            }
-          })
+          window.addEventListener('message', this.handleMessage)
 
         $player.addEventListener('load', () => {
           helper.bindEvents($player)
         })
+      }
+    },
+    handleMessage(e) {
+      const playerEvent = this.helper.onMessage(e)
+      if (playerEvent) {
+        console.log(playerEvent);
+        this[playerEvent.func](playerEvent.data)
       }
     },
     play() {
