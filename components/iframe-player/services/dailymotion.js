@@ -39,6 +39,8 @@ export default class DailymotionHelper {
 
     queryParams['api'] = 'postMessage';
     queryParams['id'] = this.id
+    queryParams['queue-enable'] = false
+    queryParams['queue-autoplay-next'] = false
 
     if (urlParams.search) {
       this.url = this.url.replace(urlParams.search, objectToQueryParams(queryParams))
