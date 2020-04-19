@@ -37,6 +37,7 @@ export default {
         playing: false,
         paused: true,
         stoped: true,
+        muted: false,
       }
     }
   },
@@ -134,6 +135,22 @@ export default {
       $player.contentWindow.postMessage(JSON.stringify({ command : 'seek', parameters:[0] }), 'https://www.dailymotion.com');
 
     },
+    mute() {
+      const { $player } = this.$refs
+
+      $player.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'mute' }), 'https://www.youtube.com')
+      $player.contentWindow.postMessage({ method: 'setVolume', value: 0 }, 'https://player.vimeo.com');
+      $player.contentWindow.postMessage(JSON.stringify({ command : 'muted', parameters: [1] }), 'https://www.dailymotion.com');
+
+    },
+    unmute() {
+      const { $player } = this.$refs
+
+      $player.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'unMute' }), 'https://www.youtube.com')
+      $player.contentWindow.postMessage({ method: 'setVolume', value: 1 }, 'https://player.vimeo.com');
+      $player.contentWindow.postMessage(JSON.stringify({ command : 'muted', parameters: [0] }), 'https://www.dailymotion.com');
+
+    },
     setIframeSrc(str) {
       this.$refs.$player.src = str
     },
@@ -168,7 +185,16 @@ export default {
       if(overlay && overlay_hide && overlay_on_stop) {
         this.overlay_hide = false // show overlay
       }
-    }
+    },
+    onMute(e) {
+      this.state.muted = true
+    },
+    onUnmute(e) {
+      this.state.muted = false
+    },
+    onVolume(e) {
+
+    },
   }
 }
 

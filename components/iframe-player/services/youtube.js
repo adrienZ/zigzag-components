@@ -4,6 +4,7 @@ import {
 } from '../utils.js'
 
 export default class YoutubeHelper {
+  // https://developers.google.com/youtube/iframe_api_reference
   constructor(urlParams) {
     const {
       pathname,
@@ -52,25 +53,26 @@ export default class YoutubeHelper {
 
 
   bindEvents($player) {
+    const events = ['onReady', 'onStateChange']
+
     $player.contentWindow.postMessage(JSON.stringify({
       event: 'listening',
       id: this.id,
       channel: 'widget'
     }), 'https://www.youtube.com')
-    $player.contentWindow.postMessage(JSON.stringify({
-      event: "command",
-      func: "addEventListener",
-      args: ["onStateChange"],
-      id: this.id,
-      channel: "widget"
-    }), 'https://www.youtube.com')
-    $player.contentWindow.postMessage(JSON.stringify({
-      event: "command",
-      func: "addEventListener",
-      args: ["onReady"],
-      id: this.id,
-      channel: "widget"
-    }), 'https://www.youtube.com')
+
+
+    events.forEach( eventName => {
+      $player.contentWindow.postMessage(JSON.stringify({
+        event: "command",
+        func: "addEventListener",
+        args: [eventName],
+        id: this.id,
+        channel: "widget"
+      }), 'https://www.youtube.com')
+    })
+
+
 
   }
 

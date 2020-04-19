@@ -4,6 +4,7 @@ import {
 } from '../utils.js'
 
 export default class VimeoHelper {
+  // https://developer.vimeo.com/player/sdk/reference
   constructor(urlParams) {
     const {
       host,
@@ -50,22 +51,14 @@ export default class VimeoHelper {
   }
 
   bindEvents($player) {
-    $player.contentWindow.postMessage({
-      method: 'addEventListener',
-      value: 'pause'
-    }, 'https://player.vimeo.com');
-    $player.contentWindow.postMessage({
-      method: 'addEventListener',
-      value: 'play'
-    }, 'https://player.vimeo.com');
-    $player.contentWindow.postMessage({
-      method: 'addEventListener',
-      value: 'loaded'
-    }, 'https://player.vimeo.com');
-    $player.contentWindow.postMessage({
-      method: 'addEventListener',
-      value: 'ended'
-    }, 'https://player.vimeo.com');
+    const events = ['pause', 'play', 'loaded', 'ended', 'volumechange']
+
+    events.forEach( eventName => {
+      $player.contentWindow.postMessage({
+        method: 'addEventListener',
+        value: eventName
+      }, 'https://player.vimeo.com');
+    })
   }
 
   onMessage(e) {
@@ -86,21 +79,30 @@ export default class VimeoHelper {
 
 
       if (this.cacheId === this.id) {
-        if (data.event === "play") {
-          response = {
-            func: 'onPlay',
-            data
-          }
+        let func
+
+        switch (data.event) {
+          case 'play':
+            func = 'onPlay'
+            break;
+          case 'pause':
+            func = 'onPause'
+            break;
+          case 'ended':
+            func = 'onStop'
+            break;
+          case 'volumechange':
+            if (data.data.volume === 0) {
+              func = 'onMute'
+            } else {
+              func = 'onUnmute'
+            }
+            break;
         }
-        if (data.event === "pause") {
+
+        if (func) {
           response = {
-            func: 'onPause',
-            data
-          }
-        }
-        if (data.event === "ended") {
-          response = {
-            func: 'onStop',
+            func,
             data
           }
         }

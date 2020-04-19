@@ -4,6 +4,8 @@ import {
 } from '../utils.js'
 
 export default class DailymotionHelper {
+  // https://developer.dailymotion.com/player/
+  // https://github.com/dailymotion/dailymotion-sdk-js/blob/master/src/core/player.js#L106
   constructor(urlParams) {
     const {
       pathname,
@@ -79,6 +81,18 @@ export default class DailymotionHelper {
           response = {
             func: 'onStop',
             data
+          }
+        case 'volumechange':
+          if (data.muted === "true") {
+            response = {
+              func: 'onMute',
+              data
+            }
+          } else {
+            response = {
+              func: 'onUnmute',
+              data
+            }
           }
           break;
       }
