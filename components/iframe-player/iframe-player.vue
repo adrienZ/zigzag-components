@@ -30,13 +30,13 @@ export default {
   data() {
     return {
       iframeUrl: '',
-      urlParams: {},
       overlay_hide: true,
       state: {
         ready: false,
         playing: false,
         paused: true,
         stoped: true,
+        muted: false,
       }
     }
   },
@@ -62,29 +62,34 @@ export default {
       // check if src is url
       const validity = isUrl(this.iframeUrl)
       if (!validity) {
-        console.error(this.iframeUrl + 'is not a valid url')
-        return this.setIframeSrc(this.iframeUrl)
+        this.setIframeSrc(this.iframeUrl)
+        throw new Error(this.iframeUrl + 'is not a valid url')
       }
 
       // parse URL
-      this.urlParams = parseUrl(this.iframeUrl)
-      const { urlParams } = this
+      const { host } = parseUrl(this.iframeUrl)
 
       let helper
 
-      switch (urlParams.host) {
+      switch (host) {
         case this.services.YOUTUBE:
           $player.classList.add('player--youtube')
-          helper = new YoutubeHelper(urlParams)
+          helper = new YoutubeHelper($player, {
+            src: this.src
+          })
           break;
         case this.services.VIMEO:
         case this.services.VIMEO_PAGE:
           $player.classList.add('player--vimeo')
-          helper = new VimeoHelper(urlParams)
+          helper = new VimeoHelper($player, {
+            src: this.src
+          })
           break;
         case this.services.DAILYMOTION:
           $player.classList.add('player--dailymotion')
-          helper = new DailymotionHelper(urlParams)
+          helper = new DailymotionHelper($player, {
+            src: this.src
+          })
           break;
         default:
           this.setIframeSrc(this.iframeUrl)
@@ -92,47 +97,40 @@ export default {
 
       if (helper) {
         this.helper = helper
-        helper.addApiQueryParams(urlParams)
+
+        // create embed url and params
+        helper.setQueryParams()
         this.iframeUrl = helper.url
         this.setIframeSrc(this.iframeUrl)
 
-          window.addEventListener('message', this.handleMessage)
+        window.addEventListener('message', this.handleMessage)
 
         $player.addEventListener('load', () => {
-          helper.bindEvents($player)
+          helper.listenEvents()
         })
       }
     },
     handleMessage(e) {
-      const playerEvent = this.helper.onMessage(e)
-      if (playerEvent) {
-        console.log(playerEvent);
-        this[playerEvent.func](playerEvent.data)
-      }
+      const emitted = this.helper.onMessage(e)
+      emitted.forEach(event => {
+        // console.log(event);
+        this[event.func](event.data)
+      });
     },
     play() {
-      const { $player } = this.$refs
-
-      $player.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'playVideo' }), 'https://www.youtube.com')
-      $player.contentWindow.postMessage({ method: 'play' }, 'https://player.vimeo.com');
-      $player.contentWindow.postMessage('play', 'https://www.dailymotion.com');
+      this.helper.play()
     },
     pause() {
-      const { $player } = this.$refs
-
-      $player.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'pauseVideo' }), 'https://www.youtube.com')
-      $player.contentWindow.postMessage({ method: 'pause' }, 'https://player.vimeo.com');
-      $player.contentWindow.postMessage('pause', 'https://www.dailymotion.com');
+      this.helper.pause()
     },
     stop() {
-      const { $player } = this.$refs
-
-      $player.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'stopVideo' }), 'https://www.youtube.com')
-      $player.contentWindow.postMessage({ method: 'unload' }, 'https://player.vimeo.com');
-
-      $player.contentWindow.postMessage('pause', 'https://www.dailymotion.com');
-      $player.contentWindow.postMessage(JSON.stringify({ command : 'seek', parameters:[0] }), 'https://www.dailymotion.com');
-
+      this.helper.stop()
+    },
+    mute() {
+      this.helper.mute()
+    },
+    unmute() {
+      this.helper.unmute()
     },
     setIframeSrc(str) {
       this.$refs.$player.src = str
@@ -168,7 +166,14 @@ export default {
       if(overlay && overlay_hide && overlay_on_stop) {
         this.overlay_hide = false // show overlay
       }
-    }
+    },
+    onMute(e) {
+      this.state.muted = true
+    },
+    onUnmute(e) {
+      this.state.muted = false
+    },
+    onVolume(e) {},
   }
 }
 

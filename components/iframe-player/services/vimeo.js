@@ -1,39 +1,39 @@
+import VideoService from './video-service'
 import {
-  getQueryStringParams,
-  objectToQueryParams
+  objectToQueryParams,
 } from '../utils.js'
 
-export default class VimeoHelper {
-  constructor(urlParams) {
+
+// TODO:
+// - keep volume state to trigger unmute event
+
+export default class VimeoHelper extends VideoService {
+  // https://developer.vimeo.com/player/sdk/reference
+  actionUrl = 'https://player.vimeo.com'
+
+  onInit() {
     const {
-      host,
-      href
-    } = urlParams
-    this.url = href
-    this.originalUrl = href
-    this.urlParams = urlParams
-    this.queryParams = getQueryStringParams(urlParams.search)
+      urlParams
+    } = this
 
     this.id = urlParams.pathname.split('/').pop()
-    this.cacheId = undefined
 
-    // handle youtube page url
-    if (host === 'vimeo.com') {
-      this.url = this.convertPageLinkToEmbed(urlParams)
+    if (urlParams.host === 'vimeo.com') {
+      this.pageToEmbed(urlParams)
     }
   }
 
-  convertPageLinkToEmbed() {
+  pageToEmbed() {
     const {
       host,
       protocol,
       search,
     } = this.urlParams
 
-    return protocol + '//' + 'player.' + host + '/video/' + this.id + search
+    this.url = protocol + '//' + 'player.' + host + '/video/' + this.id + search
   }
 
-  addApiQueryParams() {
+  setQueryParams() {
     const {
       urlParams,
       queryParams
@@ -49,28 +49,52 @@ export default class VimeoHelper {
     }
   }
 
-  bindEvents($player) {
-    $player.contentWindow.postMessage({
-      method: 'addEventListener',
-      value: 'pause'
-    }, 'https://player.vimeo.com');
-    $player.contentWindow.postMessage({
-      method: 'addEventListener',
-      value: 'play'
-    }, 'https://player.vimeo.com');
-    $player.contentWindow.postMessage({
-      method: 'addEventListener',
-      value: 'loaded'
-    }, 'https://player.vimeo.com');
-    $player.contentWindow.postMessage({
-      method: 'addEventListener',
-      value: 'ended'
-    }, 'https://player.vimeo.com');
+  listenEvents() {
+    const events = ['pause', 'play', 'loaded', 'ended', 'volumechange']
+
+    events.forEach(eventName => {
+      this.postMessage({
+        method: 'addEventListener',
+        value: eventName
+      });
+    })
+  }
+
+  play() {
+    this.postMessage({
+      method: 'play'
+    })
+  }
+
+  pause() {
+    this.postMessage({
+      method: 'pause'
+    })
+  }
+
+  stop() {
+    this.postMessage({
+      method: 'unload'
+    })
+  }
+
+  mute() {
+    this.postMessage({
+      method: 'setVolume',
+      value: 0
+    })
+  }
+
+  unmute() {
+    this.postMessage({
+      method: 'setVolume',
+      value: 1
+    })
   }
 
   onMessage(e) {
-    let response = false
-    if (e.origin === 'https://player.vimeo.com') {
+    let response = []
+    if (e.origin === this.actionUrl) {
       let {
         data
       } = e
@@ -78,31 +102,50 @@ export default class VimeoHelper {
       // weird flex but ok
       if (!this.cacheId && data.event === "loaded") {
         this.cacheId = data.data.id.toString()
-        response = {
+        response.push({
           func: 'onReady',
           data,
-        }
+        })
       }
 
 
       if (this.cacheId === this.id) {
-        if (data.event === "play") {
-          response = {
-            func: 'onPlay',
-            data
-          }
-        }
-        if (data.event === "pause") {
-          response = {
-            func: 'onPause',
-            data
-          }
-        }
-        if (data.event === "ended") {
-          response = {
-            func: 'onStop',
-            data
-          }
+        switch (data.event) {
+          case 'play':
+            response.push({
+              func: 'onPlay',
+              data,
+            })
+            break;
+          case 'pause':
+            response.push({
+              func: 'onPause',
+              data,
+            })
+            break;
+          case 'ended':
+            response.push({
+              func: 'onStop',
+              data,
+            })
+            break;
+          case 'volumechange':
+            if (data.data.volume === 0) {
+              response.push({
+                func: 'onMute',
+                data,
+              })
+            } else {
+              response.push({
+                func: 'onUnmute',
+                data,
+              })
+            }
+            response.push({
+              func: 'onVolume',
+              data,
+            })
+            break;
         }
       }
     }

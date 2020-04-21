@@ -1,39 +1,20 @@
+import VideoService from './video-service'
 import {
-  getQueryStringParams,
-  objectToQueryParams
+  objectToQueryParams,
+  getQueryStringParams
 } from '../utils.js'
 
-export default class YoutubeHelper {
-  constructor(urlParams) {
-    const {
-      pathname,
-      href,
-      search,
-    } = urlParams
+export default class YoutubeHelper extends VideoService {
+  // https://developers.google.com/youtube/iframe_api_reference
+  actionUrl = 'https://www.youtube.com'
 
-    this.url = href
-    this.urlParams = urlParams
-    this.queryParams = getQueryStringParams(search)
-    this.id = this.url
-
-    // handle youtube page url
-    if (pathname === '/watch') {
-      this.url = this.convertPageLinkToEmbed()
+  onInit() {
+    if (this.urlParams.pathname === '/watch') {
+      this.pageToEmbed(this.url)
     }
   }
 
-  convertPageLinkToEmbed() {
-    const {
-      host,
-      protocol,
-      search
-    } = this.urlParams
-
-    const videoId = getQueryStringParams(search).v
-    return protocol + '//' + host + '/embed/' + videoId + search
-  }
-
-  addApiQueryParams() {
+  setQueryParams() {
     const {
       urlParams,
       queryParams
@@ -50,34 +31,76 @@ export default class YoutubeHelper {
     }
   }
 
+  pageToEmbed() {
+    const {
+      host,
+      protocol,
+      search
+    } = this.urlParams
 
-  bindEvents($player) {
-    $player.contentWindow.postMessage(JSON.stringify({
+    const videoId = getQueryStringParams(search).v
+    this.url = protocol + '//' + host + '/embed/' + videoId + search
+  }
+
+  listenEvents() {
+    const events = ['onReady', 'onStateChange']
+
+    this.postMessage({
       event: 'listening',
       id: this.id,
       channel: 'widget'
-    }), 'https://www.youtube.com')
-    $player.contentWindow.postMessage(JSON.stringify({
-      event: "command",
-      func: "addEventListener",
-      args: ["onStateChange"],
-      id: this.id,
-      channel: "widget"
-    }), 'https://www.youtube.com')
-    $player.contentWindow.postMessage(JSON.stringify({
-      event: "command",
-      func: "addEventListener",
-      args: ["onReady"],
-      id: this.id,
-      channel: "widget"
-    }), 'https://www.youtube.com')
+    }, true)
 
+    events.forEach(eventName => {
+      this.postMessage({
+        event: "command",
+        func: "addEventListener",
+        args: [eventName],
+        id: this.id,
+        channel: "widget"
+      }, true)
+    })
+  }
+
+  play() {
+    this.postMessage({
+      event: 'command',
+      func: 'playVideo'
+    }, true)
+  }
+
+  pause() {
+    this.postMessage({
+      event: 'command',
+      func: 'pauseVideo'
+    }, true)
+  }
+
+  stop() {
+    this.postMessage({
+      event: 'command',
+      func: 'clearVideo'
+    }, true)
+  }
+
+  mute() {
+    this.postMessage({
+      event: 'command',
+      func: 'mute'
+    }, true)
+  }
+
+  unmute() {
+    this.postMessage({
+      event: 'command',
+      func: 'unMute'
+    }, true)
   }
 
   onMessage(e) {
-    let response = false
+    let response = []
 
-    if (e.origin === 'https://www.youtube.com') {
+    if (e.origin === this.actionUrl) {
       const data = JSON.parse(e.data)
       const {
         event,
@@ -87,32 +110,32 @@ export default class YoutubeHelper {
 
 
       if (data && event === 'onReady' && id === this.id) {
-        response = {
+        response.push({
           func: 'onReady',
           data
-        }
+        })
       }
 
       if (data && event === 'onStateChange' && id === this.id) {
         switch (data.info) {
           case 0:
           case 5:
-            response = {
+            response.push({
               func: 'onStop',
               data
-            }
+            })
             break;
           case 1:
-            response = {
+            response.push({
               func: 'onPlay',
               data
-            }
+            })
             break;
           case 2:
-            response = {
+            response.push({
               func: 'onPause',
               data
-            }
+            })
             break;
         }
       }

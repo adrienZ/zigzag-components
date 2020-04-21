@@ -77,6 +77,8 @@ const demoComponent = tests => ({
           <button class="btn btn-info" @click="$refs['el-' + index][0].play()">play</button>
           <button class="btn btn-info" @click="$refs['el-' + index][0].pause()">pause</button>
           <button class="btn btn-info" @click="$refs['el-' + index][0].stop()">stop</button>
+          <button class="btn btn-info" @click="$refs['el-' + index][0].mute()">mute</button>
+          <button class="btn btn-info" @click="$refs['el-' + index][0].unmute()">unmute</button>
         </div>
       </div>
 
