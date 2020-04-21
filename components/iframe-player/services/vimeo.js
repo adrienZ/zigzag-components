@@ -1,40 +1,39 @@
+import VideoService from './video-service'
 import {
-  getQueryStringParams,
-  objectToQueryParams
+  objectToQueryParams,
 } from '../utils.js'
 
-export default class VimeoHelper {
+
+// TODO:
+// - keep volume state to trigger unmute event
+
+export default class VimeoHelper extends VideoService {
   // https://developer.vimeo.com/player/sdk/reference
-  constructor(urlParams) {
+  actionUrl = 'https://player.vimeo.com'
+
+  onInit() {
     const {
-      host,
-      href
-    } = urlParams
-    this.url = href
-    this.originalUrl = href
-    this.urlParams = urlParams
-    this.queryParams = getQueryStringParams(urlParams.search)
+      urlParams
+    } = this
 
     this.id = urlParams.pathname.split('/').pop()
-    this.cacheId = undefined
 
-    // handle youtube page url
-    if (host === 'vimeo.com') {
-      this.url = this.convertPageLinkToEmbed(urlParams)
+    if (urlParams.host === 'vimeo.com') {
+      this.pageToEmbed(urlParams)
     }
   }
 
-  convertPageLinkToEmbed() {
+  pageToEmbed() {
     const {
       host,
       protocol,
       search,
     } = this.urlParams
 
-    return protocol + '//' + 'player.' + host + '/video/' + this.id + search
+    this.url = protocol + '//' + 'player.' + host + '/video/' + this.id + search
   }
 
-  addApiQueryParams() {
+  setQueryParams() {
     const {
       urlParams,
       queryParams
@@ -50,20 +49,52 @@ export default class VimeoHelper {
     }
   }
 
-  bindEvents($player) {
+  listenEvents() {
     const events = ['pause', 'play', 'loaded', 'ended', 'volumechange']
 
-    events.forEach( eventName => {
-      $player.contentWindow.postMessage({
+    events.forEach(eventName => {
+      this.postMessage({
         method: 'addEventListener',
         value: eventName
-      }, 'https://player.vimeo.com');
+      });
+    })
+  }
+
+  play() {
+    this.postMessage({
+      method: 'play'
+    })
+  }
+
+  pause() {
+    this.postMessage({
+      method: 'pause'
+    })
+  }
+
+  stop() {
+    this.postMessage({
+      method: 'unload'
+    })
+  }
+
+  mute() {
+    this.postMessage({
+      method: 'setVolume',
+      value: 0
+    })
+  }
+
+  unmute() {
+    this.postMessage({
+      method: 'setVolume',
+      value: 1
     })
   }
 
   onMessage(e) {
-    let response = false
-    if (e.origin === 'https://player.vimeo.com') {
+    let response = []
+    if (e.origin === this.actionUrl) {
       let {
         data
       } = e
@@ -71,40 +102,50 @@ export default class VimeoHelper {
       // weird flex but ok
       if (!this.cacheId && data.event === "loaded") {
         this.cacheId = data.data.id.toString()
-        response = {
+        response.push({
           func: 'onReady',
           data,
-        }
+        })
       }
 
 
       if (this.cacheId === this.id) {
-        let func
-
         switch (data.event) {
           case 'play':
-            func = 'onPlay'
+            response.push({
+              func: 'onPlay',
+              data,
+            })
             break;
           case 'pause':
-            func = 'onPause'
+            response.push({
+              func: 'onPause',
+              data,
+            })
             break;
           case 'ended':
-            func = 'onStop'
+            response.push({
+              func: 'onStop',
+              data,
+            })
             break;
           case 'volumechange':
             if (data.data.volume === 0) {
-              func = 'onMute'
+              response.push({
+                func: 'onMute',
+                data,
+              })
             } else {
-              func = 'onUnmute'
+              response.push({
+                func: 'onUnmute',
+                data,
+              })
             }
+            response.push({
+              func: 'onVolume',
+              data,
+            })
             break;
-        }
-
-        if (func) {
-          response = {
-            func,
-            data
-          }
         }
       }
     }

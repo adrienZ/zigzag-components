@@ -1,25 +1,19 @@
+import VideoService from './video-service'
 import {
   getQueryStringParams,
-  objectToQueryParams
+  objectToQueryParams,
 } from '../utils.js'
 
-export default class DailymotionHelper {
+// TODO:
+// - HANDLE FAKE STOP
+export default class DailymotionHelper extends VideoService {
   // https://developer.dailymotion.com/player/
   // https://github.com/dailymotion/dailymotion-sdk-js/blob/master/src/core/player.js#L106
-  constructor(urlParams) {
-    const {
-      pathname,
-      href
-    } = urlParams
-    this.url = href
-    this.urlParams = urlParams
-    this.queryParams = getQueryStringParams(urlParams.search)
+  actionUrl = 'https://www.dailymotion.com'
 
-    this.id = this.url
-
-    // handle youtube page url
-    if (!pathname.includes('/embed')) {
-      this.url = this.convertPageLinkToEmbed(urlParams)
+  onInit() {
+    if (!this.urlParams.pathname.includes('/embed')) {
+      this.convertPageLinkToEmbed()
     }
   }
 
@@ -28,10 +22,11 @@ export default class DailymotionHelper {
       href,
       pathname
     } = this.urlParams
-    return href.replace(pathname, '/embed' + pathname)
+
+    this.url = href.replace(pathname, '/embed' + pathname)
   }
 
-  addApiQueryParams() {
+  setQueryParams() {
     const {
       urlParams,
       queryParams
@@ -41,6 +36,7 @@ export default class DailymotionHelper {
 
     queryParams['api'] = 'postMessage';
     queryParams['id'] = this.id
+    // no next video autoplay
     queryParams['queue-enable'] = false
     queryParams['queue-autoplay-next'] = false
 
@@ -51,53 +47,72 @@ export default class DailymotionHelper {
     }
   }
 
-  bindEvents($player) {}
-
   onMessage(e) {
     const data = getQueryStringParams(e.data)
-    let response = false
+    let response = []
 
     if (data.id === this.id) {
       switch (data.event) {
         case 'playback_ready':
-          response = {
+          response.push({
             func: 'onReady',
             data
-          }
+          })
           break;
         case 'playing':
-          response = {
+          response.push({
             func: 'onPlay',
             data
-          }
+          })
           break;
         case 'pause':
-          response = {
+          response.push({
             func: 'onPause',
             data
-          }
+          })
           break;
         case 'end':
-          response = {
+          response.push({
             func: 'onStop',
             data
-          }
+          })
         case 'volumechange':
           if (data.muted === "true") {
-            response = {
+            response.push({
               func: 'onMute',
               data
-            }
+            })
           } else {
-            response = {
+            response.push({
               func: 'onUnmute',
               data
-            }
+            })
           }
           break;
       }
     }
 
     return response
+  }
+
+  play() {
+    this.postMessage('play')
+  }
+
+  pause() {
+    this.postMessage('pause')
+  }
+
+  stop() {
+    this.postMessage('pause')
+    this.postMessage({ command : 'seek', parameters:[0]}, true)
+  }
+
+  mute() {
+    this.postMessage({ command : 'muted', parameters: [1] }, true)
+  }
+
+  unmute() {
+    this.postMessage({ command : 'muted', parameters: [0] }, true)
   }
 }
