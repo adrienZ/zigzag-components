@@ -79,7 +79,7 @@ export default class YoutubeHelper extends VideoService {
   stop() {
     this.postMessage({
       event: 'command',
-      func: 'clearVideo'
+      func: 'stopVideo'
     }, true)
   }
 
