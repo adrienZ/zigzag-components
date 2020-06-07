@@ -14,15 +14,38 @@ withOptions({
 });
 
 
-
+function escapeHtml(unsafe) {
+  return unsafe
+       .replace(/&/g, "&amp;")
+       .replace(/</g, "&lt;")
+       .replace(/>/g, "&gt;")
+       .replace(/"/g, "&quot;")
+       .replace(/'/g, "&#039;");
+}
 
 stories.add('Popup', () =>  ({
     components: {
       Popup,
     },
     template: `
-      <div class="container min-vh-100 bg-light d-flex align-items-center justify-content-center">
+      <div class="container min-vh-100 bg-light d-flex flex-column align-items-center justify-content-center">
         <button data-popup="demo" class="btn btn-secondary js-popup-opener">Open popup</button>
+
+
+        <pre class="bg-dark text-light mt-4">
+          <code>${
+            escapeHtml(`
+  <Popup id="demo">
+    <div class="row">
+      <div class="col-md-8 mx-auto my-5">
+        <div class="js-popup-events p-3 bg-dark text-white">
+            YOUR CONTENT
+        </div>
+      </div>
+    </div>
+  </Popup>`)}</code>
+  </pre>
+
         <Popup id="demo">
           <div class="row">
             <div class="col-md-8 mx-auto my-5">
