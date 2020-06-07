@@ -1,0 +1,50 @@
+import {
+  storiesOf
+} from '@storybook/vue';
+import {
+  withOptions
+} from '@storybook/addon-options';
+import Popup from '../components/Popup.vue'
+
+const stories = storiesOf('Colorz/Layout', module);
+withOptions({
+  hierarchySeparator: /\//, // matches /
+  // hierarchySeparator: /\/|\./, // matches a . or /
+  // hierarchyRootSeparator: /\|/, //matches a |
+});
+
+
+
+
+stories.add('Popup', () =>  ({
+    components: {
+      Popup,
+    },
+    template: `
+      <div class="container min-vh-100 bg-light d-flex align-items-center justify-content-center">
+        <button data-popup="demo" class="btn btn-secondary js-popup-opener">Open popup</button>
+        <Popup id="demo">
+          <div class="row">
+            <div class="col-md-8 mx-auto my-5">
+
+              <div class="js-popup-events p-3 bg-dark text-white">
+
+              ${new Array(10).fill(undefined).map(
+                () => '<p>What is Lorem Ipsum? Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.</p>'
+                ) .join('')
+              }
+
+              <div class="mt-4">
+                <a href="#logmein" class="btn btn-success mr-2">Log in</a>
+                <button class="btn btn-light js-popup-close">Close</button>
+              </div>
+
+              </div>
+
+            </div>
+          </div>
+
+        </Popup>
+      </div>`
+  })
+)
