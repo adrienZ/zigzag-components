@@ -35,6 +35,7 @@ export default {
   created() {
     // bind events because we dont use Vue for them
     this.open = this.open.bind(this)
+    this.onKeyboard = this.onKeyboard.bind(this)
     this.close = this.close.bind(this)
     this.stay = this.stay.bind(this)
   },
@@ -50,16 +51,17 @@ export default {
     }
   },
   mounted() {
+     // allow events and prevent close on events zone
+    this.$eventsZone = this.$el.querySelector('.js-popup-events')
     // custom events bidings
     this.bindEvents()
   },
   methods: {
     bindEvents() {
-      // allow events and prevent close on events zone
-      this.$eventsZone = this.$el.querySelector('.js-popup-events')
-
       if (this.$eventsZone) {
+        // enable close when clicking outside of the popup (on the overlay)
         this.$eventsZone.addEventListener('click', this.stay)
+        this.$el.addEventListener('click', this.close)
       } else {
         console.warn(
           'the following popup',
@@ -68,17 +70,19 @@ export default {
       }
 
 
-      // handle external open trigger
-      const $trigger = document.querySelector('.js-popup-opener[data-popup="'+ this.id + '"]');
-      $trigger && $trigger.addEventListener('click', this.open),
+      // open triggers
+      const $triggers = document.querySelectorAll('.js-popup-opener[data-popup="'+ this.id + '"]');
+      $triggers.forEach( el => {
+        el.addEventListener('click', this.open)
+      })
 
-      // close trigger and default self close
-      this.$el.addEventListener('click', this.close)
-      this.$close = document.querySelectorAll('.js-popup-close')
-      this.$close.forEach( el => {
+      // close triggers
+      document.querySelectorAll('.js-popup-close').forEach( el => {
         el.addEventListener('click', this.close)
       })
     },
+    onOpen(e) {},
+    onClose(e) {},
     open(e) {
       e.preventDefault()
       this.$el.classList.add('c-popup--open')
@@ -93,14 +97,28 @@ export default {
       this.$eventsZone.focus();
       this.$eventsZone.tabIndex = "0";
 
+      window.addEventListener('keypress', this.onKeyboard)
+
+      this.onOpen(e)
     },
     close(e) {
       e.preventDefault()
       this.$el.classList.remove('c-popup--open')
       this.isOpen = false
+      this.onClose(e)
     },
     stay(e) {
+      // prevent this.close()
       e.stopPropagation()
+    },
+    onKeyboard(e) {
+      switch (e.keyCode) {
+        // escape
+        case 27:
+          this.close(e)
+          window.removeEventListener('keypress', this.onKeyboard)
+          break;
+      }
     }
   }
 }
