@@ -2,7 +2,7 @@
   <div class="c-popup" :data-id="id" :id="'c-popup-' + id">
 
     <!-- SCROLLABLE VIEWPORT -->
-    <div class="c-popup__viewport u-transition u-overflow-auto" style="transition: 0.2s">
+    <div class="c-popup__viewport u-transition u-overflow-auto" tabindex="-1" style="transition: 0.2s">
 
       <!-- CONTAINER -->
       <div class="c-popup__container container-fluid u-full-height u-relative">
@@ -56,9 +56,10 @@ export default {
   methods: {
     bindEvents() {
       // allow events and prevent close on events zone
-      const $eventsZone = this.$el.querySelector('.js-popup-events')
-      if ($eventsZone) {
-        $eventsZone.addEventListener('click', this.stay)
+      this.$eventsZone = this.$el.querySelector('.js-popup-events')
+
+      if (this.$eventsZone) {
+        this.$eventsZone.addEventListener('click', this.stay)
       } else {
         console.warn(
           'the following popup',
@@ -82,6 +83,16 @@ export default {
       e.preventDefault()
       this.$el.classList.add('c-popup--open')
       this.isOpen = true
+
+      /*
+       * enable focus,
+       * tab index + visibility: visible,
+       * focus, and reset tabindex to default
+       */
+      this.$eventsZone.tabIndex = "-1";
+      this.$eventsZone.focus();
+      this.$eventsZone.tabIndex = "0";
+
     },
     close(e) {
       e.preventDefault()
@@ -100,6 +111,11 @@ export default {
 
 .c-popup {
   position: relative;
+
+  .js-popup-events {
+    // accesibility: visibility to enable :focus
+    visibility: visible;
+  }
 }
 
 .c-popup__viewport {
