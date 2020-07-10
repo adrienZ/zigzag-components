@@ -4,19 +4,17 @@
     <!-- SCROLLABLE VIEWPORT -->
     <div class="c-popup__viewport u-transition u-overflow-auto" tabindex="-1" style="transition: 0.2s">
 
+      <!-- DECORATIVE OVERLAY -->
+      <div class="c-popup__overlay js-overlay js-popup-close u-wrapper-panel"></div>
+
       <!-- CONTAINER -->
       <div class="c-popup__container container-fluid u-full-height u-relative">
 
-        <!-- DECORATIVE OVERLAY -->
-        <div class="c-popup__overlay js-overlay js-popup-close u-wrapper-panel"></div>
-
         <!-- MAIN -->
-        <div class="c-popup__box u-wrapper-panel">
-          <div class="c-popup__inner u-full-width u-transition" style="transition: 0.5s 0.1s">
-            <!-- CHILDREN COMPONENT -->
-            <slot />
-            <!-- END CHILDREN COMPONENT -->
-          </div>
+        <div class="c-popup__inner u-full-width u-transition" style="transition: 0.5s 0.1s">
+          <!-- CHILDREN COMPONENT -->
+          <slot />
+          <!-- END CHILDREN COMPONENT -->
         </div>
         <!-- END MAIN -->
 
@@ -144,9 +142,9 @@ export default {
   height: 100%;
   width: 100%;
 
-  // make it scrollable
-  overflow: auto;
-
+  // scrollable
+  overflow-y: auto;
+  overflow-x: hidden;
 
   // initial state
   opacity: 0;
@@ -167,17 +165,19 @@ export default {
   position: relative;
   width: 80%;
   margin: auto;
+
+  // center children
+  display: flex;
+  align-items: center;
 }
 
 .c-popup__overlay {
+  // full screen
   position: fixed;
-
   width: 100%;
   height: 100%;
   top: 0;
   left: 0;
-
-  z-index: 1;
 
   // allow scroll
   pointer-events: none;
@@ -185,28 +185,13 @@ export default {
   background-color: rgba(black, 0.5);
 }
 
-.c-popup__box {
-  // content on top of the overlay
-  height: 100%;
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 1;
-  width: 100%;
-}
-
 .c-popup__inner {
-  // vertical center of the actual content
-  position: absolute;
-  top: 50%;
-  left: 50%;
+  // ie
   width: 100%;
-  transform: translate3d(-50%, -50%, 0);
 
   // allow margin top of children
-  // despite the transform
-
   max-height: 100%;
+
   // initial state
   opacity: 0;
 
