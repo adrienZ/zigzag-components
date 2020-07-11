@@ -1,22 +1,9 @@
-import {
-  storiesOf
-} from '@storybook/vue';
-import {
-  withOptions
-} from '@storybook/addon-options';
 import 'bootstrap/dist/css/bootstrap.css';
-
 import Underline from '../components/text/Underline.vue'
 
-const stories = storiesOf('Text', module);
-withOptions({
-  hierarchySeparator: /\//, // matches /
-  // hierarchySeparator: /\/|\./, // matches a . or /
-  // hierarchyRootSeparator: /\|/, //matches a |
-});
+export default { title: 'Text' }
 
-
-const demoComponent = text => ({
+export const underline = () => ({
   components: {
     Underline
   },
@@ -29,5 +16,3 @@ const demoComponent = text => ({
       </div>
     </div>`
 })
-
-stories.add('Underline', demoComponent)
