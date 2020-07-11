@@ -1,14 +1,14 @@
 <template>
   <div class="demo-underline">
 
-    <div class="border border-primary p-3 rounded">
+    <div class="border border-secondary p-3 rounded">
       <h2>Multine underline</h2>
       <a class="underline--hover lead" style="cursor: pointer;"> test linqqkyyyyjj <br> multine link</a>
     </div>
 
-    <div class="mt-4 p-3 border border-dark rounded">
+    <div class="mt-4 p-3 border border-secondary rounded">
       <h2>Underline reset</h2>
-      <a class="underline--link lead" style="cursor: pointer;"> test linqqkyyyyjj <br> multine link</a>
+      <a class="underline--link lead" style="cursor: pointer;">test linqqkyyyyjj <br> multine link</a>
     </div>
 
   </div>
