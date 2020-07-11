@@ -30,6 +30,8 @@ export default class VideoService {
     // set your custom
   }
 
+  getInitialState() {}
+
   pageToEmbed(pageUrl = '') {}
 
   setQueryParams(optionalParams = {}) {}

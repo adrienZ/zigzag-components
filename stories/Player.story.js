@@ -12,7 +12,7 @@ import 'bootstrap/dist/css/bootstrap.css';
 
 import IframePlayer from '../components/iframe-player/iframe-player.vue'
 
-const stories = storiesOf('Colorz/Player/Iframe', module);
+const stories = storiesOf('Video/Iframe', module);
 withOptions({
   hierarchySeparator: /\//, // matches /
   // hierarchySeparator: /\/|\./, // matches a . or /

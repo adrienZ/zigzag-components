@@ -62,6 +62,14 @@ export default class YoutubeHelper extends VideoService {
     })
   }
 
+  getInitialState() {
+    console.log("getInitialState");
+    this.postMessage({
+      event: 'command',
+      func: 'getVolume'
+    }, true)
+  }
+
   play() {
     this.postMessage({
       event: 'command',
@@ -106,6 +114,8 @@ export default class YoutubeHelper extends VideoService {
         event,
         id
       } = data
+
+      console.log(data);
 
 
 

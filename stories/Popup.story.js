@@ -6,7 +6,7 @@ import {
 } from '@storybook/addon-options';
 import Popup from '../components/Popup.vue'
 
-const stories = storiesOf('Colorz/Layout', module);
+const stories = storiesOf('Layout', module);
 withOptions({
   hierarchySeparator: /\//, // matches /
   // hierarchySeparator: /\/|\./, // matches a . or /
@@ -16,11 +16,11 @@ withOptions({
 
 function escapeHtml(unsafe) {
   return unsafe
-       .replace(/&/g, "&amp;")
-       .replace(/</g, "&lt;")
-       .replace(/>/g, "&gt;")
-       .replace(/"/g, "&quot;")
-       .replace(/'/g, "&#039;");
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
 }
 
 stories.add('Popup', () =>  ({

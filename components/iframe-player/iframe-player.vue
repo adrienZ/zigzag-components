@@ -29,7 +29,6 @@ export default {
   },
   data() {
     return {
-      iframeUrl: '',
       overlay_hide: true,
       state: {
         ready: false,
@@ -54,20 +53,18 @@ export default {
     update() {
       const { $player } = this.$refs
 
-      // RESET
-      this.iframeUrl = this.src
       this.overlay_hide = !this.overlay
       $player.className = this.classNames.playerInit
 
       // check if src is url
-      const validity = isUrl(this.iframeUrl)
+      const validity = isUrl(this.src)
       if (!validity) {
-        this.setIframeSrc(this.iframeUrl)
-        throw new Error(this.iframeUrl + 'is not a valid url')
+        this.setIframeSrc(this.src)
+        throw new Error(this.src + 'is not a valid url')
       }
 
       // parse URL
-      const { host } = parseUrl(this.iframeUrl)
+      const { host } = parseUrl(this.src)
 
       let helper
 
@@ -92,7 +89,7 @@ export default {
           })
           break;
         default:
-          this.setIframeSrc(this.iframeUrl)
+          this.setIframeSrc(this.src)
       }
 
       if (helper) {
@@ -100,8 +97,7 @@ export default {
 
         // create embed url and params
         helper.setQueryParams()
-        this.iframeUrl = helper.url
-        this.setIframeSrc(this.iframeUrl)
+        this.setIframeSrc(helper.url)
 
         window.addEventListener('message', this.handleMessage)
 
@@ -119,6 +115,8 @@ export default {
     },
     play() {
       this.helper.play()
+      // prevent lag with overlay
+      this.onPlay()
     },
     pause() {
       this.helper.pause()
@@ -137,6 +135,7 @@ export default {
     },
     onReady(e) {
       this.state.ready = true
+      const infos = helper.getInitialState()
     },
     onPlay(e) {
       this.state.playing = true
