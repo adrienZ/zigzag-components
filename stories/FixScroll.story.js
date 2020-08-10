@@ -12,20 +12,37 @@ export const story = () => ({
   },
   data() {
     return {
-      scrollState: false
+      scrollState: false,
+      scrollbarVisibility: true,
     }
   },
   methods: {
-    onClick() {
+    toggleScroll() {
       this.scroll.state ? this.scroll.unFix() : this.scroll.fix()
       this.scrollState = this.scroll.state
+    },
+    toggleScrollbarVisibility() {
+      document.head.insertAdjacentHTML("beforeend", `<style>
+			.hide-scrollbar::-webkit-scrollbar {
+				display: none;
+			}
+
+			.hide-scrollbar {
+				-ms-overflow-style: none;
+				scrollbar-width: none;
+			}
+
+      </style>`)
+      document.querySelector('html').classList.toggle('hide-scrollbar', this.scrollbarVisibility)
+      this.scrollbarVisibility = !this.scrollbarVisibility
     }
   },
   template: `
   <section>
     <div class="row">
       <div class="col-lg-3 p-3 text-center sticky-top bg-light">
-        <button @click="onClick()" class="btn btn-primary">{{scrollState ? 'Enable' : 'Prevent' }} scroll</button>
+        <button @click="toggleScroll()" class="btn btn-primary">{{scrollState ? 'Enable' : 'Prevent' }} scroll</button>
+        <button @click="toggleScrollbarVisibility()" class="btn btn-primary">{{scrollbarVisibility ? 'Hide' : 'Show' }} scrollbar</button>
       </div>
       <div class="col-lg-6 mt-5 mb-5">
       ${new Array(10).fill(undefined).map(
