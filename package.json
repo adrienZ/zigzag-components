@@ -14,13 +14,9 @@
     }
   },
   "engines": {
-    "node": "20.8.0",
-    "pnpm": "8.8.0"
+    "node": "20.8.0"
   },
-  "volta": {
-    "node": "20.8.0",
-    "pnpm": "8.8.0"
-  },
+  "packageManager": "pnpm@8.8.0",
   "scripts": {
     "dev": "vite",
     "build": "run-p type-check \"build-only {@}\" --",
